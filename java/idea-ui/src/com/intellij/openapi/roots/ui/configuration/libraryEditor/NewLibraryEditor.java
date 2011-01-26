@@ -21,6 +21,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryProperties;
 import com.intellij.openapi.roots.libraries.LibraryType;
 import com.intellij.openapi.roots.ui.LightFilePointer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
@@ -36,7 +37,7 @@ import java.util.*;
 public class NewLibraryEditor implements LibraryEditor {
   private String myLibraryName;
   private final MultiMap<OrderRootType, LightFilePointer> myRoots;
-  private final Map<String, Boolean> myJarDirectories = new HashMap<String, Boolean>();
+  private final Map<Pair<String, OrderRootType>, Boolean> myJarDirectories = new HashMap<Pair<String, OrderRootType>, Boolean>();
   private final LibraryType myType;
   private LibraryProperties myProperties;
 
@@ -82,7 +83,7 @@ public class NewLibraryEditor implements LibraryEditor {
     for (LightFilePointer pointer : myRoots.get(rootType)) {
       final VirtualFile file = pointer.getFile();
       if (file.isDirectory()) {
-        final Boolean recursively = myJarDirectories.get(file.getUrl());
+        final Boolean recursively = myJarDirectories.get(Pair.create(file.getUrl(), rootType));
         if (recursively != null) {
           LibraryImpl.collectJarFiles(file, result, recursively);
           continue;
@@ -110,19 +111,29 @@ public class NewLibraryEditor implements LibraryEditor {
 
   @Override
   public void addJarDirectory(VirtualFile file, boolean recursive) {
-    addJarDirectory(file.getUrl(), recursive);
+    addJarDirectory(file.getUrl(), recursive, OrderRootType.CLASSES);
   }
 
   @Override
   public void addJarDirectory(final String url, boolean recursive) {
-    addRoot(url, OrderRootType.CLASSES);
-    myJarDirectories.put(url, recursive);
+    addJarDirectory(url, recursive, OrderRootType.CLASSES);
+  }
+
+  @Override
+  public void addJarDirectory(VirtualFile file, boolean recursive, OrderRootType rootType) {
+    addJarDirectory(file.getUrl(), recursive, rootType);
+  }
+
+  @Override
+  public void addJarDirectory(final String url, boolean recursive, OrderRootType rootType) {
+    addRoot(url, rootType);
+    myJarDirectories.put(Pair.create(url, rootType), recursive);
   }
 
   @Override
   public void removeRoot(String url, OrderRootType rootType) {
     myRoots.removeValue(rootType, new LightFilePointer(url));
-    myJarDirectories.remove(url);
+    myJarDirectories.remove(Pair.create(url, rootType));
   }
 
   @Override
@@ -132,7 +143,12 @@ public class NewLibraryEditor implements LibraryEditor {
 
   @Override
   public boolean isJarDirectory(String url) {
-    return myJarDirectories.containsKey(url);
+    return isJarDirectory(url, OrderRootType.CLASSES);
+  }
+
+  @Override
+  public boolean isJarDirectory(String url, OrderRootType rootType) {
+    return myJarDirectories.containsKey(Pair.create(url, rootType));
   }
 
   @Override
@@ -157,8 +173,11 @@ public class NewLibraryEditor implements LibraryEditor {
         model.addRoot(pointer.getUrl(), type);
       }
     }
-    for (Map.Entry<String, Boolean> entry : myJarDirectories.entrySet()) {
-      model.addJarDirectory(entry.getKey(), entry.getValue());
+    for (Map.Entry<Pair<String, OrderRootType>, Boolean> entry : myJarDirectories.entrySet()) {
+      final String url = entry.getKey().getFirst();
+      final OrderRootType rootType = entry.getKey().getSecond();
+      final Boolean recursive = entry.getValue();
+      model.addJarDirectory(url, recursive, rootType);
     }
   }
 
@@ -168,8 +187,11 @@ public class NewLibraryEditor implements LibraryEditor {
         editor.addRoot(pointer.getUrl(), type);
       }
     }
-    for (Map.Entry<String, Boolean> entry : myJarDirectories.entrySet()) {
-      editor.addJarDirectory(entry.getKey(), entry.getValue());
+    for (Map.Entry<Pair<String, OrderRootType>, Boolean> entry : myJarDirectories.entrySet()) {
+      final String url = entry.getKey().getFirst();
+      final OrderRootType rootType = entry.getKey().getSecond();
+      final Boolean recursive = entry.getValue();
+      editor.addJarDirectory(url, recursive, rootType);
     }
   }
 }
