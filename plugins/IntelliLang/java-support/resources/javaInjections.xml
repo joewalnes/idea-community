@@ -279,4 +279,20 @@
     <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("selectNodes").withParameters("java.lang.Object", "java.lang.String").definedInClass("org.jdom.xpath.XPath"))]]></place>
     <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("selectSingleNode").withParameters("java.lang.Object", "java.lang.String").definedInClass("org.jdom.xpath.XPath"))]]></place>
   </injection>
+  <injection language="SQL" injector-id="java">
+    <display-name>Delete.value (org.apache.ibatis.annotations)</display-name>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("org.apache.ibatis.annotations.Delete")]]></place>
+  </injection>
+  <injection language="SQL" injector-id="java">
+    <display-name>Insert.value (org.apache.ibatis.annotations)</display-name>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("org.apache.ibatis.annotations.Insert")]]></place>
+  </injection>
+  <injection language="SQL" injector-id="java">
+    <display-name>Select.value (org.apache.ibatis.annotations)</display-name>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("org.apache.ibatis.annotations.Select")]]></place>
+  </injection>
+  <injection language="SQL" injector-id="java">
+    <display-name>Update.value (org.apache.ibatis.annotations)</display-name>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("org.apache.ibatis.annotations.Update")]]></place>
+  </injection>
 </component>
